@@ -1,3 +1,7 @@
+// Touch screen library with X Y and Z (pressure) readings as well
+// as oversampling to avoid 'bouncing'
+// This demo code returns raw readings, public domain
+
 #include "TouchScreen.h"
 
 #define YP A2  // must be an analog pin, use "An" notation!

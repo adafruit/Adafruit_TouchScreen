@@ -1,3 +1,8 @@
+// Touch screen library with X Y and Z (pressure) readings as well
+// as oversampling to avoid 'bouncing'
+// (c) ladyada / adafruit
+// Code under MIT License
+
 #include <WProgram.h>
 
 class Point {
