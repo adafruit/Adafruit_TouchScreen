@@ -53,6 +53,7 @@ Point TouchScreen::getPoint(void) {
   int samples[NUMSAMPLES];
   uint8_t i, valid;
   
+
   uint8_t xp_port = digitalPinToPort(_xp);
   uint8_t yp_port = digitalPinToPort(_yp);
   uint8_t xm_port = digitalPinToPort(_xm);
@@ -62,23 +63,24 @@ Point TouchScreen::getPoint(void) {
   uint8_t yp_pin = digitalPinToBitMask(_yp);
   uint8_t xm_pin = digitalPinToBitMask(_xm);
   uint8_t ym_pin = digitalPinToBitMask(_ym);
- 
+
+
   valid = 1;
 
   pinMode(_yp, INPUT);
   pinMode(_ym, INPUT);
   
   *portOutputRegister(yp_port) &= ~yp_pin;
-  //digitalWrite(_yp, LOW);
   *portOutputRegister(ym_port) &= ~ym_pin;
+  //digitalWrite(_yp, LOW);
   //digitalWrite(_ym, LOW);
    
   pinMode(_xp, OUTPUT);
-  *portOutputRegister(xp_port) |= xp_pin;
-  //digitalWrite(_xp, HIGH);
   pinMode(_xm, OUTPUT);
-  *portOutputRegister(xm_port) &= ~xm_pin;
+  //digitalWrite(_xp, HIGH);
   //digitalWrite(_xm, LOW);
+  *portOutputRegister(xp_port) |= xp_pin;
+  *portOutputRegister(xm_port) &= ~xm_pin;
    
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_yp);
