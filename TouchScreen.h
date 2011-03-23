@@ -3,12 +3,14 @@
 // (c) ladyada / adafruit
 // Code under MIT License
 
-#include <WProgram.h>
-
 class Point {
  public:
   Point(void);
   Point(int16_t x, int16_t y, int16_t z);
+  
+  boolean operator==(Point);
+  boolean operator!=(Point);
+
   int16_t x, y, z;
 };
 

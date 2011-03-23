@@ -3,11 +3,18 @@
 // (c) ladyada / adafruit
 // Code under MIT License
 
+#include "pins_arduino.h"
+#include "wiring_private.h"
+#include <avr/pgmspace.h>
 #include "TouchScreen.h"
 
-// increase or decrease the touchscreen oversampling. 1 is no oversampling, 5 is more precise. 
-// 3 is an OK place to be
-#define NUMSAMPLES 3
+// increase or decrease the touchscreen oversampling. This is a little different than you make think:
+// 1 is no oversampling, whatever data we get is immediately returned
+// 2 is double-sampling and we only return valid data if both points are the same
+// 3+ uses insert sort to get the median value.
+// We found 2 is precise yet not too slow so we suggest sticking with it!
+
+#define NUMSAMPLES 2
 
 Point::Point(void) {
   x = y = 0;
@@ -19,6 +26,15 @@ Point::Point(int16_t x0, int16_t y0, int16_t z0) {
   z = z0;
 }
 
+boolean Point::operator==(Point p1) {
+  return  ((p1.x == x) && (p1.y == y) && (p1.z == z));
+}
+
+boolean Point::operator!=(Point p1) {
+  return  ((p1.x != x) || (p1.y != y) || (p1.z != z));
+}
+
+#if (NUMSAMPLES > 2)
 static void insert_sort(int array[], uint8_t size) {
   uint8_t j;
   int save;
@@ -30,53 +46,86 @@ static void insert_sort(int array[], uint8_t size) {
     array[j] = save; 
   }
 }
+#endif
 
 Point TouchScreen::getPoint(void) {
   int x, y, z;
   int samples[NUMSAMPLES];
-  uint8_t i;
+  uint8_t i, valid;
+  
+  uint8_t xp_port = digitalPinToPort(_xp);
+  uint8_t yp_port = digitalPinToPort(_yp);
+  uint8_t xm_port = digitalPinToPort(_xm);
+  uint8_t ym_port = digitalPinToPort(_ym);
 
-   pinMode(_yp, INPUT);
-   pinMode(_ym, INPUT);
-   digitalWrite(_yp, LOW);
-   digitalWrite(_ym, LOW);
+  uint8_t xp_pin = digitalPinToBitMask(_xp);
+  uint8_t yp_pin = digitalPinToBitMask(_yp);
+  uint8_t xm_pin = digitalPinToBitMask(_xm);
+  uint8_t ym_pin = digitalPinToBitMask(_ym);
+ 
+  valid = 1;
+
+  pinMode(_yp, INPUT);
+  pinMode(_ym, INPUT);
+  
+  *portOutputRegister(yp_port) &= ~yp_pin;
+  //digitalWrite(_yp, LOW);
+  *portOutputRegister(ym_port) &= ~ym_pin;
+  //digitalWrite(_ym, LOW);
    
-   pinMode(_xp, OUTPUT);
-   digitalWrite(_xp, HIGH);
-   pinMode(_xm, OUTPUT);
-   digitalWrite(_xm, LOW);
+  pinMode(_xp, OUTPUT);
+  *portOutputRegister(xp_port) |= xp_pin;
+  //digitalWrite(_xp, HIGH);
+  pinMode(_xm, OUTPUT);
+  *portOutputRegister(xm_port) &= ~xm_pin;
+  //digitalWrite(_xm, LOW);
    
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_yp);
    }
+#if NUMSAMPLES > 2
    insert_sort(samples, NUMSAMPLES);
-
-   x = (1023-samples[NUMSAMPLES/2 + 1]);
+#endif
+#if NUMSAMPLES == 2
+   if (samples[0] != samples[1]) { valid = 0; }
+#endif
+   x = (1023-samples[NUMSAMPLES/2]);
 
    pinMode(_xp, INPUT);
    pinMode(_xm, INPUT);
-   digitalWrite(_xp, LOW);
+   *portOutputRegister(xp_port) &= ~xp_pin;
+   //digitalWrite(_xp, LOW);
    
    pinMode(_yp, OUTPUT);
-   digitalWrite(_yp, HIGH);
+   *portOutputRegister(yp_port) |= yp_pin;
+   //digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
   
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_xm);
    }
-   insert_sort(samples, NUMSAMPLES);
 
-   y = (1023-samples[NUMSAMPLES/2 + 1]);
+#if NUMSAMPLES > 2
+   insert_sort(samples, NUMSAMPLES);
+#endif
+#if NUMSAMPLES == 2
+   if (samples[0] != samples[1]) { valid = 0; }
+#endif
+
+   y = (1023-samples[NUMSAMPLES/2]);
 
    // Set X+ to ground
    pinMode(_xp, OUTPUT);
-   digitalWrite(_xp, LOW);
+   *portOutputRegister(xp_port) &= ~xp_pin;
+   //digitalWrite(_xp, LOW);
   
    // Set Y- to VCC
-   digitalWrite(_ym, HIGH); 
+   *portOutputRegister(ym_port) |= ym_pin;
+   //digitalWrite(_ym, HIGH); 
   
    // Hi-Z X- and Y+
-   digitalWrite(_yp, LOW);
+   *portOutputRegister(yp_port) &= ~yp_pin;
+   //digitalWrite(_yp, LOW);
    pinMode(_yp, INPUT);
   
    int z1 = analogRead(_xm); 
@@ -95,6 +144,10 @@ Point TouchScreen::getPoint(void) {
      z = rtouch;
    } else {
      z = (1023-(z2-z1));
+   }
+
+   if (! valid) {
+     z = 0;
    }
 
    return Point(x, y, z);
