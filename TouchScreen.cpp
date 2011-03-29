@@ -26,11 +26,11 @@ Point::Point(int16_t x0, int16_t y0, int16_t z0) {
   z = z0;
 }
 
-boolean Point::operator==(Point p1) {
+bool Point::operator==(Point p1) {
   return  ((p1.x == x) && (p1.y == y) && (p1.z == z));
 }
 
-boolean Point::operator!=(Point p1) {
+bool Point::operator!=(Point p1) {
   return  ((p1.x != x) || (p1.y != y) || (p1.z != z));
 }
 

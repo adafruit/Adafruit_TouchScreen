@@ -8,8 +8,8 @@ class Point {
   Point(void);
   Point(int16_t x, int16_t y, int16_t z);
   
-  boolean operator==(Point);
-  boolean operator!=(Point);
+  bool operator==(Point);
+  bool operator!=(Point);
 
   int16_t x, y, z;
 };
@@ -19,7 +19,7 @@ class TouchScreen {
   TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym);
   TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx);
 
-  boolean isTouching(void);
+  bool isTouching(void);
   uint16_t pressure(void);
   int readTouchY();
   int readTouchX();
