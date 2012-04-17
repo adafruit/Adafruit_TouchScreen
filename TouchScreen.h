@@ -3,6 +3,9 @@
 // (c) ladyada / adafruit
 // Code under MIT License
 
+#ifndef _ADAFRUIT_TOUCHSCREEN_H_
+#define _ADAFRUIT_TOUCHSCREEN_H_
+
 class Point {
  public:
   Point(void);
@@ -30,3 +33,5 @@ private:
   uint8_t _yp, _ym, _xm, _xp;
   uint16_t _rxplate;
 };
+
+#endif
