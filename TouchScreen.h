@@ -6,6 +6,8 @@
 #ifndef _ADAFRUIT_TOUCHSCREEN_H_
 #define _ADAFRUIT_TOUCHSCREEN_H_
 
+#include <stdint.h>
+
 class Point {
  public:
   Point(void);
