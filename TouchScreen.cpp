@@ -5,7 +5,13 @@
 
 #include "pins_arduino.h"
 #include "wiring_private.h"
-#include <avr/pgmspace.h>
+//#if !defined(__SAM3X8E__)
+//	#include <include/pio.h>
+//	typedef Pio* Port_t;
+//#else
+//	#include <avr/pgmspace.h>
+//	typedef uint8_t Port_t;
+//#endif
 #include "TouchScreen.h"
 
 // increase or decrease the touchscreen oversampling. This is a little different than you make think:
@@ -54,34 +60,34 @@ Point TouchScreen::getPoint(void) {
   uint8_t i, valid;
   
 
-  uint8_t xp_port = digitalPinToPort(_xp);
-  uint8_t yp_port = digitalPinToPort(_yp);
-  uint8_t xm_port = digitalPinToPort(_xm);
-  uint8_t ym_port = digitalPinToPort(_ym);
-
-  uint8_t xp_pin = digitalPinToBitMask(_xp);
-  uint8_t yp_pin = digitalPinToBitMask(_yp);
-  uint8_t xm_pin = digitalPinToBitMask(_xm);
-  uint8_t ym_pin = digitalPinToBitMask(_ym);
-
+  //Port_t xp_port = digitalPinToPort(_xp);
+  //Port_t yp_port = digitalPinToPort(_yp);
+  //Port_t xm_port = digitalPinToPort(_xm);
+  //Port_t ym_port = digitalPinToPort(_ym);
+//
+  //uint8_t xp_pin = digitalPinToBitMask(_xp);
+  //uint8_t yp_pin = digitalPinToBitMask(_yp);
+  //uint8_t xm_pin = digitalPinToBitMask(_xm);
+  //uint8_t ym_pin = digitalPinToBitMask(_ym);
+//
 
   valid = 1;
 
   pinMode(_yp, INPUT);
   pinMode(_ym, INPUT);
   
-  *portOutputRegister(yp_port) &= ~yp_pin;
-  *portOutputRegister(ym_port) &= ~ym_pin;
-  //digitalWrite(_yp, LOW);
-  //digitalWrite(_ym, LOW);
+  //*portOutputRegister(yp_port) &= ~yp_pin;
+  //*portOutputRegister(ym_port) &= ~ym_pin;
+  digitalWrite(_yp, LOW);
+  digitalWrite(_ym, LOW);
    
   pinMode(_xp, OUTPUT);
   pinMode(_xm, OUTPUT);
-  //digitalWrite(_xp, HIGH);
-  //digitalWrite(_xm, LOW);
-  *portOutputRegister(xp_port) |= xp_pin;
-  *portOutputRegister(xm_port) &= ~xm_pin;
-   
+  digitalWrite(_xp, HIGH);
+  digitalWrite(_xm, LOW);
+  //*portOutputRegister(xp_port) |= xp_pin;
+  //*portOutputRegister(xm_port) &= ~xm_pin;
+
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_yp);
    }
@@ -89,19 +95,21 @@ Point TouchScreen::getPoint(void) {
    insert_sort(samples, NUMSAMPLES);
 #endif
 #if NUMSAMPLES == 2
-   if (samples[0] != samples[1]) { valid = 0; }
+   if (samples[0]>>2 != samples[1]>>2) { valid = 0; }
 #endif
    x = (1023-samples[NUMSAMPLES/2]);
 
    pinMode(_xp, INPUT);
    pinMode(_xm, INPUT);
-   *portOutputRegister(xp_port) &= ~xp_pin;
-   //digitalWrite(_xp, LOW);
+//   *portOutputRegister(xp_port) &= ~xp_pin;
+   digitalWrite(_xp, LOW);
    
    pinMode(_yp, OUTPUT);
-   *portOutputRegister(yp_port) |= yp_pin;
-   //digitalWrite(_yp, HIGH);
+//   *portOutputRegister(yp_port) |= yp_pin;
+   digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
+//   *portOutputRegister(ym_port) &= ~yp_pin;
+   digitalWrite(_ym, LOW);
   
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_xm);
@@ -111,23 +119,23 @@ Point TouchScreen::getPoint(void) {
    insert_sort(samples, NUMSAMPLES);
 #endif
 #if NUMSAMPLES == 2
-   if (samples[0] != samples[1]) { valid = 0; }
+   if (samples[0]>>2 != samples[1]>>2) { valid = 0; }
 #endif
 
    y = (1023-samples[NUMSAMPLES/2]);
 
    // Set X+ to ground
    pinMode(_xp, OUTPUT);
-   *portOutputRegister(xp_port) &= ~xp_pin;
-   //digitalWrite(_xp, LOW);
+//   *portOutputRegister(xp_port) &= ~xp_pin;
+   digitalWrite(_xp, LOW);
   
    // Set Y- to VCC
-   *portOutputRegister(ym_port) |= ym_pin;
-   //digitalWrite(_ym, HIGH); 
+//   *portOutputRegister(ym_port) |= ym_pin;
+   digitalWrite(_ym, HIGH); 
   
    // Hi-Z X- and Y+
-   *portOutputRegister(yp_port) &= ~yp_pin;
-   //digitalWrite(_yp, LOW);
+//   *portOutputRegister(yp_port) &= ~yp_pin;
+   digitalWrite(_yp, LOW);
    pinMode(_yp, INPUT);
   
    int z1 = analogRead(_xm); 
