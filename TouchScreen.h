@@ -6,13 +6,13 @@
 #ifndef _ADAFRUIT_TOUCHSCREEN_H_
 #define _ADAFRUIT_TOUCHSCREEN_H_
 
-class Point {
+class TSPoint {
  public:
-  Point(void);
-  Point(int16_t x, int16_t y, int16_t z);
+  TSPoint(void);
+  TSPoint(int16_t x, int16_t y, int16_t z);
   
-  bool operator==(Point);
-  bool operator!=(Point);
+  bool operator==(TSPoint);
+  bool operator!=(TSPoint);
 
   int16_t x, y, z;
 };
@@ -26,7 +26,7 @@ class TouchScreen {
   uint16_t pressure(void);
   int readTouchY();
   int readTouchX();
-  Point getPoint();
+  TSPoint getPoint();
   int16_t pressureThreshhold;
 
 private:
