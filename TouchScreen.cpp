@@ -53,18 +53,6 @@ TSPoint TouchScreen::getPoint(void) {
   int samples[NUMSAMPLES];
   uint8_t i, valid;
   
-
-  uint8_t xp_port = digitalPinToPort(_xp);
-  uint8_t yp_port = digitalPinToPort(_yp);
-  uint8_t xm_port = digitalPinToPort(_xm);
-  uint8_t ym_port = digitalPinToPort(_ym);
-
-  uint8_t xp_pin = digitalPinToBitMask(_xp);
-  uint8_t yp_pin = digitalPinToBitMask(_yp);
-  uint8_t xm_pin = digitalPinToBitMask(_xm);
-  uint8_t ym_pin = digitalPinToBitMask(_ym);
-
-
   valid = 1;
 
   pinMode(_yp, INPUT);
@@ -130,8 +118,8 @@ TSPoint TouchScreen::getPoint(void) {
    //digitalWrite(_yp, LOW);
    pinMode(_yp, INPUT);
   
-   int z1 = analogRead(_xm); 
-   int z2 = analogRead(_yp);
+   uint16_t z1 = analogRead(_xm); 
+   uint16_t z2 = analogRead(_yp);
 
    if (_rxplate != 0) {
      // now read the x 
@@ -151,7 +139,10 @@ TSPoint TouchScreen::getPoint(void) {
    if (! valid) {
      z = 0;
    }
-
+   
+   // Clean pins for LCD fix
+   cleanPins();
+   
    return TSPoint(x, y, z);
 }
 
@@ -161,6 +152,18 @@ TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym) {
   _ym = ym;
   _xp = xp;
   _rxplate = 0;
+  
+  //Added these to here for speed up the point detection
+  xp_port = digitalPinToPort(_xp);
+  yp_port = digitalPinToPort(_yp);
+  xm_port = digitalPinToPort(_xm);
+  ym_port = digitalPinToPort(_ym);
+
+  xp_pin = digitalPinToBitMask(_xp);
+  yp_pin = digitalPinToBitMask(_yp);
+  xm_pin = digitalPinToBitMask(_xm);
+  ym_pin = digitalPinToBitMask(_ym);
+  
   pressureThreshhold = 10;
 }
 
@@ -172,58 +175,98 @@ TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym,
   _ym = ym;
   _xp = xp;
   _rxplate = rxplate;
+  
+  //Added these to here for speed up the point detection
+  xp_port = digitalPinToPort(_xp);
+  yp_port = digitalPinToPort(_yp);
+  xm_port = digitalPinToPort(_xm);
+  ym_port = digitalPinToPort(_ym);
 
+  xp_pin = digitalPinToBitMask(_xp);
+  yp_pin = digitalPinToBitMask(_yp);
+  xm_pin = digitalPinToBitMask(_xm);
+  ym_pin = digitalPinToBitMask(_ym);
+  
   pressureThreshhold = 10;
 }
 
-int TouchScreen::readTouchX(void) {
+uint16_t TouchScreen::readTouchX(void) {
+   //Added int to save result
+   uint16_t result;
+   
    pinMode(_yp, INPUT);
    pinMode(_ym, INPUT);
-   digitalWrite(_yp, LOW);
-   digitalWrite(_ym, LOW);
+   *portOutputRegister(yp_port) &= ~yp_pin;
+   //digitalWrite(_yp, LOW);
+   *portOutputRegister(ym_port) &= ~ym_pin;
+   //digitalWrite(_ym, LOW);
    
    pinMode(_xp, OUTPUT);
-   digitalWrite(_xp, HIGH);
-   pinMode(_xm, OUTPUT);
-   digitalWrite(_xm, LOW);
+   *portOutputRegister(xp_port) |= xp_pin;
+   //digitalWrite(_xp, HIGH);
    
-   return (1023-analogRead(_yp));
+   pinMode(_xm, OUTPUT);
+   *portOutputRegister(xm_port) &= ~xm_pin;
+   //digitalWrite(_xm, LOW);
+   
+   result = 1023-analogRead(_yp);
+   
+   //Clean pins for LCD fix
+   cleanPins();
+   
+   return result;
 }
 
 
-int TouchScreen::readTouchY(void) {
+uint16_t TouchScreen::readTouchY(void) {
+	//Added int to save result
+   uint16_t result;
+   
    pinMode(_xp, INPUT);
    pinMode(_xm, INPUT);
-   digitalWrite(_xp, LOW);
-   digitalWrite(_xm, LOW);
+   *portOutputRegister(xp_port) &= ~xp_pin;
+   //digitalWrite(_xp, LOW);
+   *portOutputRegister(xm_port) &= ~xm_pin;
+   //digitalWrite(_xm, LOW);
    
    pinMode(_yp, OUTPUT);
-   digitalWrite(_yp, HIGH);
+   *portOutputRegister(yp_port) |= yp_pin;
+   //digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
-   digitalWrite(_ym, LOW);
+   *portOutputRegister(ym_port) &= ~ym_pin;
+   //digitalWrite(_ym, LOW);
    
-   return (1023-analogRead(_xm));
+   result = 1023-analogRead(_xm);
+   
+   //Clean pins for LCD fix
+   cleanPins();
+   
+   return result;
 }
 
 
 uint16_t TouchScreen::pressure(void) {
   // Set X+ to ground
   pinMode(_xp, OUTPUT);
-  digitalWrite(_xp, LOW);
-  
+  *portOutputRegister(xp_port) &= ~xp_pin;
+  //digitalWrite(_xp, LOW);
   // Set Y- to VCC
   pinMode(_ym, OUTPUT);
-  digitalWrite(_ym, HIGH); 
+  *portOutputRegister(ym_port) |= ym_pin;
+  //digitalWrite(_ym, HIGH); 
   
   // Hi-Z X- and Y+
-  digitalWrite(_xm, LOW);
+  *portOutputRegister(xm_port) &= ~xm_pin;
+  //digitalWrite(_xm, LOW);
   pinMode(_xm, INPUT);
-  digitalWrite(_yp, LOW);
+  
+  *portOutputRegister(yp_port) &= ~yp_pin;
+  //digitalWrite(_yp, LOW);
   pinMode(_yp, INPUT);
   
-  int z1 = analogRead(_xm); 
-  int z2 = analogRead(_yp);
-
+  int16_t z1 = analogRead(_xm); 
+  int16_t z2 = analogRead(_yp);
+  
   if (_rxplate != 0) {
     // now read the x 
     float rtouch;
@@ -233,9 +276,46 @@ uint16_t TouchScreen::pressure(void) {
     rtouch *= readTouchX();
     rtouch *= _rxplate;
     rtouch /= 1024;
+	
+	//Mo need to clear pins here 
+	//because readRouchX() does it already
+	
     
     return rtouch;
   } else {
+	// Clean pins for LCD fix
+	cleanPins();
     return (1023-(z2-z1));
   }
+}
+
+bool TouchScreen::isTouching(void) {
+	//read current pressure level
+	uint16_t touch = pressure();
+	
+	Serial.print("Kosketus paine on: ");
+	Serial.print(touch);
+	//No need to clear pins, because pressure does it already
+	
+	//Minimum and maximum that we define as good touch
+	if (touch > 100 && touch < 980) {
+		return true;
+	}
+	else return false;
+}
+
+//Pin clearing function. This clears used pins for better LCD support on same pins.
+void TouchScreen::cleanPins(void) {
+	pinMode(_xm, OUTPUT);
+	*portOutputRegister(xm_port) &= ~xm_pin;
+	//digitalWrite(_xm, LOW);
+	pinMode(_yp, OUTPUT);
+	*portOutputRegister(yp_port) |= yp_pin;
+	//digitalWrite(_yp, HIGH);
+	pinMode(_ym, OUTPUT);
+	*portOutputRegister(ym_port) &= ~ym_pin;
+	//digitalWrite(_ym, LOW);
+	pinMode(_xp, OUTPUT);
+	*portOutputRegister(xp_port) |= xp_pin;
+	//digitalWrite(_xp, HIGH);
 }
