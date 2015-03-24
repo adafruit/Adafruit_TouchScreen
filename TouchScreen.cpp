@@ -293,8 +293,6 @@ bool TouchScreen::isTouching(void) {
 	//read current pressure level
 	uint16_t touch = pressure();
 	
-	Serial.print("Kosketus paine on: ");
-	Serial.print(touch);
 	//No need to clear pins, because pressure does it already
 	
 	//Minimum and maximum that we define as good touch
