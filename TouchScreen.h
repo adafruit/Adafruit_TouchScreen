@@ -33,12 +33,15 @@ class TouchScreen {
 private:
   //Input pins
   uint8_t _yp, _ym, _xm, _xp;
-  //Input pins port registers
-  uint8_t xp_port, yp_port, xm_port, ym_port;
-  //Input pins converted to mask
-  uint8_t xp_pin, yp_pin, xm_pin ,ym_pin;
-  
-  uint16_t _rxplate;
+	#if defined(__arm__)
+	//No port manipulation in DUE and ARM boards
+	#elde
+		//Input pins port registers
+		uint8_t xp_port, yp_port, xm_port, ym_port;
+		//Input pins converted to mask
+		uint8_t xp_pin, yp_pin, xm_pin ,ym_pin;
+	#endif
+	uint16_t _rxplate;
   //Internal cleanup function
   void cleanPins(void);
 };
