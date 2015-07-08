@@ -5,7 +5,11 @@
 
 #include "pins_arduino.h"
 #include "wiring_private.h"
-#include <avr/pgmspace.h>
+#ifdef __AVR
+  #include <avr/pgmspace.h>
+#elif defined(ESP8266)
+  #include <pgmspace.h>
+#endif
 #include "TouchScreen.h"
 
 // increase or decrease the touchscreen oversampling. This is a little different than you make think:
