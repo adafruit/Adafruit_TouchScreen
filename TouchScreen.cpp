@@ -3,6 +3,7 @@
 // (c) ladyada / adafruit
 // Code under MIT License
 
+#include "Arduino.h"
 #include "pins_arduino.h"
 #include "wiring_private.h"
 #ifdef __AVR
@@ -86,6 +87,9 @@ TSPoint TouchScreen::getPoint(void) {
   *portOutputRegister(xp_port) |= xp_pin;
   *portOutputRegister(xm_port) &= ~xm_pin;
    
+#ifdef __arm__
+  delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
+#endif
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_yp);
    }
@@ -93,7 +97,13 @@ TSPoint TouchScreen::getPoint(void) {
    insert_sort(samples, NUMSAMPLES);
 #endif
 #if NUMSAMPLES == 2
-   if (samples[0] != samples[1]) { valid = 0; }
+   // Allow small amount of measurement noise, because capacitive
+   // coupling to a TFT display's signals can induce some noise.
+   if (samples[0] - samples[1] < -4 || samples[0] - samples[1] > 4) {
+     valid = 0;
+   } else {
+     samples[1] = (samples[0] + samples[1]) >> 1; // average 2 samples
+   }
 #endif
    x = (1023-samples[NUMSAMPLES/2]);
 
@@ -107,6 +117,9 @@ TSPoint TouchScreen::getPoint(void) {
    //digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
   
+#ifdef __arm__
+   delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
+#endif
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_xm);
    }
@@ -115,7 +128,13 @@ TSPoint TouchScreen::getPoint(void) {
    insert_sort(samples, NUMSAMPLES);
 #endif
 #if NUMSAMPLES == 2
-   if (samples[0] != samples[1]) { valid = 0; }
+   // Allow small amount of measurement noise, because capacitive
+   // coupling to a TFT display's signals can induce some noise.
+   if (samples[0] - samples[1] < -4 || samples[0] - samples[1] > 4) {
+     valid = 0;
+   } else {
+     samples[1] = (samples[0] + samples[1]) >> 1; // average 2 samples
+   }
 #endif
 
    y = (1023-samples[NUMSAMPLES/2]);
