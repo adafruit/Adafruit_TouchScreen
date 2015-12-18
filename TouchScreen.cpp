@@ -5,7 +5,7 @@
 
 #include "Arduino.h"
 #include "pins_arduino.h"
-#include "wiring_private.h"
+
 #ifdef __AVR
   #include <avr/pgmspace.h>
 #elif defined(ESP8266)
@@ -58,16 +58,37 @@ TSPoint TouchScreen::getPoint(void) {
   int samples[NUMSAMPLES];
   uint8_t i, valid;
   
+#if defined(ARDUINO_ARCH_SAM)
+    Pio* xp_port = digitalPinToPort(_xp);
+    Pio* yp_port = digitalPinToPort(_yp);
+    Pio* xm_port = digitalPinToPort(_xm);
+    Pio* ym_port = digitalPinToPort(_ym);
+    
+    uint32_t xp_pin = digitalPinToBitMask(_xp);
+    uint32_t yp_pin = digitalPinToBitMask(_yp);
+    uint32_t xm_pin = digitalPinToBitMask(_xm);
+    uint32_t ym_pin = digitalPinToBitMask(_ym);
+#elif defined(ARDUINO_ARCH_SAMD)
+    PortGroup* xp_port = digitalPinToPort(_xp);
+    PortGroup* yp_port = digitalPinToPort(_yp);
+    PortGroup* xm_port = digitalPinToPort(_xm);
+    PortGroup* ym_port = digitalPinToPort(_ym);
+    
+    uint32_t xp_pin = digitalPinToBitMask(_xp);
+    uint32_t yp_pin = digitalPinToBitMask(_yp);
+    uint32_t xm_pin = digitalPinToBitMask(_xm);
+    uint32_t ym_pin = digitalPinToBitMask(_ym);
+#else
+    uint8_t xp_port = digitalPinToPort(_xp);
+    uint8_t yp_port = digitalPinToPort(_yp);
+    uint8_t xm_port = digitalPinToPort(_xm);
+    uint8_t ym_port = digitalPinToPort(_ym);
 
-  uint8_t xp_port = digitalPinToPort(_xp);
-  uint8_t yp_port = digitalPinToPort(_yp);
-  uint8_t xm_port = digitalPinToPort(_xm);
-  uint8_t ym_port = digitalPinToPort(_ym);
-
-  uint8_t xp_pin = digitalPinToBitMask(_xp);
-  uint8_t yp_pin = digitalPinToBitMask(_yp);
-  uint8_t xm_pin = digitalPinToBitMask(_xm);
-  uint8_t ym_pin = digitalPinToBitMask(_ym);
+    uint8_t xp_pin = digitalPinToBitMask(_xp);
+    uint8_t yp_pin = digitalPinToBitMask(_yp);
+    uint8_t xm_pin = digitalPinToBitMask(_xm);
+    uint8_t ym_pin = digitalPinToBitMask(_ym);
+#endif
 
 
   valid = 1;
