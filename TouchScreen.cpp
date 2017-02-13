@@ -57,63 +57,30 @@ TSPoint TouchScreen::getPoint(void) {
   int x, y, z;
   int samples[NUMSAMPLES];
   uint8_t i, valid;
-  
-#if defined(ARDUINO_ARCH_SAM)
-    Pio* xp_port = digitalPinToPort(_xp);
-    Pio* yp_port = digitalPinToPort(_yp);
-    Pio* xm_port = digitalPinToPort(_xm);
-    Pio* ym_port = digitalPinToPort(_ym);
-    
-    uint32_t xp_pin = digitalPinToBitMask(_xp);
-    uint32_t yp_pin = digitalPinToBitMask(_yp);
-    uint32_t xm_pin = digitalPinToBitMask(_xm);
-    uint32_t ym_pin = digitalPinToBitMask(_ym);
-#elif defined(ARDUINO_ARCH_SAMD)
-    PortGroup* xp_port = digitalPinToPort(_xp);
-    PortGroup* yp_port = digitalPinToPort(_yp);
-    PortGroup* xm_port = digitalPinToPort(_xm);
-    PortGroup* ym_port = digitalPinToPort(_ym);
-    
-    uint32_t xp_pin = digitalPinToBitMask(_xp);
-    uint32_t yp_pin = digitalPinToBitMask(_yp);
-    uint32_t xm_pin = digitalPinToBitMask(_xm);
-    uint32_t ym_pin = digitalPinToBitMask(_ym);
-#else
-    uint8_t xp_port = digitalPinToPort(_xp);
-    uint8_t yp_port = digitalPinToPort(_yp);
-    uint8_t xm_port = digitalPinToPort(_xm);
-    uint8_t ym_port = digitalPinToPort(_ym);
-
-    uint8_t xp_pin = digitalPinToBitMask(_xp);
-    uint8_t yp_pin = digitalPinToBitMask(_yp);
-    uint8_t xm_pin = digitalPinToBitMask(_xm);
-    uint8_t ym_pin = digitalPinToBitMask(_ym);
-#endif
-
 
   valid = 1;
 
   pinMode(_yp, INPUT);
   pinMode(_ym, INPUT);
-  
-  *portOutputRegister(yp_port) &= ~yp_pin;
-  *portOutputRegister(ym_port) &= ~ym_pin;
-  //digitalWrite(_yp, LOW);
-  //digitalWrite(_ym, LOW);
-   
   pinMode(_xp, OUTPUT);
   pinMode(_xm, OUTPUT);
-  //digitalWrite(_xp, HIGH);
-  //digitalWrite(_xm, LOW);
-  *portOutputRegister(xp_port) |= xp_pin;
-  *portOutputRegister(xm_port) &= ~xm_pin;
-   
+
+#if defined (USE_FAST_PINIO)
+  *xp_port |= xp_pin;
+  *xm_port &= ~xm_pin;
+#else
+  digitalWrite(_xp, HIGH);
+  digitalWrite(_xm, LOW);
+#endif
+
 #ifdef __arm__
   delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
 #endif
+
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_yp);
    }
+
 #if NUMSAMPLES > 2
    insert_sort(samples, NUMSAMPLES);
 #endif
@@ -126,21 +93,27 @@ TSPoint TouchScreen::getPoint(void) {
      samples[1] = (samples[0] + samples[1]) >> 1; // average 2 samples
    }
 #endif
+
    x = (1023-samples[NUMSAMPLES/2]);
 
    pinMode(_xp, INPUT);
    pinMode(_xm, INPUT);
-   *portOutputRegister(xp_port) &= ~xp_pin;
-   //digitalWrite(_xp, LOW);
-   
    pinMode(_yp, OUTPUT);
-   *portOutputRegister(yp_port) |= yp_pin;
-   //digitalWrite(_yp, HIGH);
    pinMode(_ym, OUTPUT);
+
+#if defined (USE_FAST_PINIO)
+   *ym_port &= ~ym_pin;
+   *yp_port |= yp_pin;
+#else
+   digitalWrite(_ym, LOW);
+   digitalWrite(_yp, HIGH);
+#endif
+
   
 #ifdef __arm__
    delayMicroseconds(20); // Fast ARM chips need to allow voltages to settle
 #endif
+
    for (i=0; i<NUMSAMPLES; i++) {
      samples[i] = analogRead(_xm);
    }
@@ -161,18 +134,18 @@ TSPoint TouchScreen::getPoint(void) {
    y = (1023-samples[NUMSAMPLES/2]);
 
    // Set X+ to ground
-   pinMode(_xp, OUTPUT);
-   *portOutputRegister(xp_port) &= ~xp_pin;
-   //digitalWrite(_xp, LOW);
-  
    // Set Y- to VCC
-   *portOutputRegister(ym_port) |= ym_pin;
-   //digitalWrite(_ym, HIGH); 
-  
    // Hi-Z X- and Y+
-   *portOutputRegister(yp_port) &= ~yp_pin;
-   //digitalWrite(_yp, LOW);
+   pinMode(_xp, OUTPUT);
    pinMode(_yp, INPUT);
+
+#if defined (USE_FAST_PINIO)
+   *xp_port &= ~xp_pin;
+   *ym_port |= ym_pin;
+#else
+   digitalWrite(_xp, LOW);
+   digitalWrite(_ym, HIGH); 
+#endif
   
    int z1 = analogRead(_xm); 
    int z2 = analogRead(_yp);
@@ -199,23 +172,25 @@ TSPoint TouchScreen::getPoint(void) {
    return TSPoint(x, y, z);
 }
 
-TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym) {
-  _yp = yp;
-  _xm = xm;
-  _ym = ym;
-  _xp = xp;
-  _rxplate = 0;
-  pressureThreshhold = 10;
-}
-
-
 TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym,
-			 uint16_t rxplate) {
+			 uint16_t rxplate=0) {
   _yp = yp;
   _xm = xm;
   _ym = ym;
   _xp = xp;
   _rxplate = rxplate;
+
+#if defined (USE_FAST_PINIO)
+  xp_port =  portOutputRegister(digitalPinToPort(_xp));
+  yp_port =  portOutputRegister(digitalPinToPort(_yp));
+  xm_port =  portOutputRegister(digitalPinToPort(_xm));
+  ym_port =  portOutputRegister(digitalPinToPort(_ym));
+  
+  xp_pin = digitalPinToBitMask(_xp);
+  yp_pin = digitalPinToBitMask(_yp);
+  xm_pin = digitalPinToBitMask(_xm);
+  ym_pin = digitalPinToBitMask(_ym);
+#endif
 
   pressureThreshhold = 10;
 }
