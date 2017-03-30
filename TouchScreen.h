@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(TEENSYDUINO) || defined(ARDUINO_AVR_MEGA2560)
+#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(TEENSYDUINO) || defined(__AVR_ATmega2560__)
 typedef volatile uint8_t RwReg;
 #endif
 #if defined(ARDUINO_STM32_FEATHER)
