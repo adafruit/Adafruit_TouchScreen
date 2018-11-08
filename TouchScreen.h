@@ -7,6 +7,16 @@
 #define _ADAFRUIT_TOUCHSCREEN_H_
 #include <stdint.h>
 
+// ESP32 specific 
+//#define ESP32_WIFI_TOUCH // uncomment to use parallel MCU Friend LCD touchscreen with ESP32 UNO Wifi
+#ifdef ESP32 
+#define ADC_MAX 4095  // maximum value for ESP32 ADC (default 11db, 12 bits)
+#define aXM 39  // analog input pin connected to LCD_RS 
+#define aYP 36  // analog input pin connected to LCD_WR
+#else
+#define ADC_MAX 1023  // Arduino
+#endif 
+#define NOISE_LEVEL 4  // Allow small amount of measurement noise
 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(TEENSYDUINO) || defined(__AVR_ATmega2560__)
 typedef volatile uint8_t RwReg;

@@ -2,6 +2,7 @@
 // as oversampling to avoid 'bouncing'
 // (c) ladyada / adafruit
 // Code under MIT License
+// Code under MIT License
 
 #include "Arduino.h"
 #include "pins_arduino.h"
@@ -78,7 +79,11 @@ TSPoint TouchScreen::getPoint(void) {
 #endif
 
    for (i=0; i<NUMSAMPLES; i++) {
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+     samples[i] = analogRead(aYP);
+#else
      samples[i] = analogRead(_yp);
+#endif
    }
 
 #if NUMSAMPLES > 2
@@ -87,14 +92,14 @@ TSPoint TouchScreen::getPoint(void) {
 #if NUMSAMPLES == 2
    // Allow small amount of measurement noise, because capacitive
    // coupling to a TFT display's signals can induce some noise.
-   if (samples[0] - samples[1] < -4 || samples[0] - samples[1] > 4) {
+   if (samples[0] - samples[1] < -NOISE_LEVEL || samples[0] - samples[1] > NOISE_LEVEL) {
      valid = 0;
    } else {
      samples[1] = (samples[0] + samples[1]) >> 1; // average 2 samples
    }
 #endif
 
-   x = (1023-samples[NUMSAMPLES/2]);
+   x = (ADC_MAX-samples[NUMSAMPLES/2]);
 
    pinMode(_xp, INPUT);
    pinMode(_xm, INPUT);
@@ -115,7 +120,11 @@ TSPoint TouchScreen::getPoint(void) {
 #endif
 
    for (i=0; i<NUMSAMPLES; i++) {
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+     samples[i] = analogRead(aXM);
+#else
      samples[i] = analogRead(_xm);
+#endif
    }
 
 #if NUMSAMPLES > 2
@@ -124,14 +133,14 @@ TSPoint TouchScreen::getPoint(void) {
 #if NUMSAMPLES == 2
    // Allow small amount of measurement noise, because capacitive
    // coupling to a TFT display's signals can induce some noise.
-   if (samples[0] - samples[1] < -4 || samples[0] - samples[1] > 4) {
+   if (samples[0] - samples[1] < -NOISE_LEVEL || samples[0] - samples[1] > NOISE_LEVEL) {
      valid = 0;
    } else {
      samples[1] = (samples[0] + samples[1]) >> 1; // average 2 samples
    }
 #endif
 
-   y = (1023-samples[NUMSAMPLES/2]);
+   y = (ADC_MAX-samples[NUMSAMPLES/2]);
 
    // Set X+ to ground
    // Set Y- to VCC
@@ -147,8 +156,14 @@ TSPoint TouchScreen::getPoint(void) {
    digitalWrite(_ym, HIGH); 
 #endif
   
+
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+   int z1 = analogRead(aXM); 
+   int z2 = analogRead(aYP);
+#else
    int z1 = analogRead(_xm); 
    int z2 = analogRead(_yp);
+#endif
 
    if (_rxplate != 0) {
      // now read the x 
@@ -158,11 +173,11 @@ TSPoint TouchScreen::getPoint(void) {
      rtouch -= 1;
      rtouch *= x;
      rtouch *= _rxplate;
-     rtouch /= 1024;
+     rtouch /= ADC_MAX+1;
      
      z = rtouch;
    } else {
-     z = (1023-(z2-z1));
+     z = (ADC_MAX-(z2-z1));
    }
 
    if (! valid) {
@@ -205,8 +220,12 @@ int TouchScreen::readTouchX(void) {
    digitalWrite(_xp, HIGH);
    pinMode(_xm, OUTPUT);
    digitalWrite(_xm, LOW);
-   
-   return (1023-analogRead(_yp));
+
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+   return (ADC_MAX-analogRead(aYP));
+#else
+   return (ADC_MAX-analogRead(_yp));
+#endif
 }
 
 
@@ -221,7 +240,11 @@ int TouchScreen::readTouchY(void) {
    pinMode(_ym, OUTPUT);
    digitalWrite(_ym, LOW);
    
-   return (1023-analogRead(_xm));
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+   return (ADC_MAX-analogRead(aXM));
+#else
+   return (ADC_MAX-analogRead(_xm));
+#endif
 }
 
 
@@ -240,8 +263,14 @@ uint16_t TouchScreen::pressure(void) {
   digitalWrite(_yp, LOW);
   pinMode(_yp, INPUT);
   
+#if defined (ESP32_WIFI_TOUCH) && defined (ESP32)
+  int z1 = analogRead(aXM); 
+  int z2 = analogRead(aYP);
+#else
   int z1 = analogRead(_xm); 
   int z2 = analogRead(_yp);
+#endif
+
 
   if (_rxplate != 0) {
     // now read the x 
@@ -251,10 +280,10 @@ uint16_t TouchScreen::pressure(void) {
     rtouch -= 1;
     rtouch *= readTouchX();
     rtouch *= _rxplate;
-    rtouch /= 1024;
+    rtouch /= ADC_MAX+1;
     
     return rtouch;
   } else {
-    return (1023-(z2-z1));
+    return (ADC_MAX-(z2-z1));
   }
 }
