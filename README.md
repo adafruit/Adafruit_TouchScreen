@@ -26,7 +26,7 @@ Connection to MCU Friend board:
 Solder an angled pin to IO32.
 Bend over LCD_RST pin and connect to IO32 pin using jumper before joining boards.
 
-![image2](extras/connection.jpg)
+![image2](extras/connection.jpg){:height="400px" width="400px"}.
 
 
 ## Installing
