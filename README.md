@@ -5,7 +5,7 @@ This is the 4-wire resistive touch screen firmware for Arduino. Works with all A
 
 To install, click DOWNLOAD SOURCE in the top right corner, and rename the uncompressed folder "TouchScreen". See our tutorial at http://www.ladyada.net/library/arduino/libraries.html on Arduino Library installation
 
-Added modification to allow the touchscreen of MCU Friend LCDs with parallel data interfaces to be used with ESP32 UNO style boards whilst WiFi is enabled. Tested on a red board MCU Friend with default touchscreen wiring.
+Added modification to allow the 4-wire resistive touchscreen of MCU Friend LCDs with parallel data interfaces to be used with ESP32 UNO style boards whilst WiFi is enabled. Tested on a red board MCU Friend with default touchscreen wiring.
 
 
 ## Reason for Modification
@@ -18,7 +18,7 @@ The following wiring mods are needed which are different to those shown in the [
 
 Wiring for ESP UNO type board:
 
-![image1](extras/wiring.png)
+![image1](extras/wiring.png)   
 
 
 Connection to MCU Friend board:
@@ -26,7 +26,7 @@ Connection to MCU Friend board:
 Solder an angled pin to IO32.
 Bend over LCD_RST pin and connect to IO32 pin using jumper before joining boards.
 
-![image2](extras/connection.jpg){:height="400px" width="400px"}.
+![image2](extras/connection.jpg)    
 
 
 ## Installing
@@ -54,4 +54,6 @@ No changes are required to existing sketches, just recompilation.
 
 Compatible with both [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) and [MCUFRIEND_kbv](https://github.com/prenticedavid/MCUFRIEND_kbv/) libraries
 
-Touchscreen needs to be calibrated before use, eg  [TouchScreen_Calibr_native](https://github.com/prenticedavid/MCUFRIEND_kbv/tree/master/examples/TouchScreen_Calibr_native)
+Touchscreen needs to be calibrated before use, either manually using included [ESP32testTouch](examples/ESP32testTouch) or eg  [TouchScreen_Calibr_native](https://github.com/prenticedavid/MCUFRIEND_kbv/tree/master/examples/TouchScreen_Calibr_native)
+
+![image3](extras/example.jpg)   
