@@ -38,20 +38,16 @@ MCUFRIEND_kbv tft;
 // ESP32 coordinates at default 12 bit resolution have range 0 - 4095
 // however the ADC cannot read voltages below 150mv and tops out around 3.15V
 // so the actual coordinates will not be at the extremes
-const int portCoords[] = {3800, 600, 200, 3900}; // portrait left, right, top, bottom
-const int landCoords[] = {150, 3950, 300, 3800}; // landscape left, right, top, bottom
+// each library and driver may have different coordination and rotation sequence
+const int coords[] = {3800, 500, 300, 3800}; // portrait - left, right, top, bottom
 
-const int landscape = true; //  set to false for portrait
+const int rotation = 0; //  in rotation order - portrait, landscape, etc
 
 const int XP = 27, XM = 15, YP = 4, YM = 14; // default ESP32 Uno touchscreen pins
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
-int pixel_x, pixel_y;     
-int screenCoords[4];
-
 void setup() {
     Serial.begin(115200);
-    prepTouch();
 #ifdef TFT_eSPIlib
     Serial.println("TFT_eSPI library");
     tft.begin();
@@ -60,19 +56,33 @@ void setup() {
     idDisplay();
 #endif
     // screen orientation and background
-    if (landscape) Serial.println("Landscape"); else Serial.println("Portrait");
-    tft.setRotation(landscape);  
+    String orientation;
+    switch (rotation) {
+      case 0: 
+        orientation = "Portrait";
+      break;
+      case 1: 
+        orientation = "Landscape";
+      break;
+      case 2: 
+        orientation = "Portrait Inverted";
+      break;
+      case 3: 
+        orientation = "Landscape Inverted";
+      break;
+    }
+    Serial.println(orientation);
+    tft.setRotation(rotation);  
     tft.fillScreen(BLACK);
 }
 
 void loop() {
     // display touched point with colored dot
-    if (Touch_getXY()) tft.fillCircle(pixel_x, pixel_y, 2, YELLOW); 
+    uint16_t pixel_x, pixel_y;    
+    boolean pressed = Touch_getXY(&pixel_x, &pixel_y, true);
 }
 
-
-bool Touch_getXY(void) {
-    // obtain coordinates of touched point
+boolean Touch_getXY(uint16_t *x, uint16_t *y, boolean showTouch) {
     TSPoint p = ts.getPoint();
     pinMode(YP, OUTPUT);      //restore shared pins
     pinMode(XM, OUTPUT);
@@ -80,24 +90,27 @@ bool Touch_getXY(void) {
     digitalWrite(XM, HIGH);
     bool pressed = (p.z > MINPRESSURE && p.z < MAXPRESSURE);
     if (pressed) {
-        if (landscape) {
-          pixel_x = map(p.y, screenCoords[0], screenCoords[1], 0, tft.width()); 
-          pixel_y = map(p.x, screenCoords[2], screenCoords[3], 0, tft.height());
-        } else {
-          pixel_x = map(p.x, screenCoords[0], screenCoords[1], 0, tft.width()); 
-          pixel_y = map(p.y, screenCoords[2], screenCoords[3], 0, tft.height());
-        }
+      switch (rotation) {
+        case 0: // portrait
+          *x = map(p.x, coords[0], coords[1], 0, tft.width()); 
+          *y = map(p.y, coords[2], coords[3], 0, tft.height());
+        break;
+        case 1: // landscape
+          *x = map(p.y, coords[1], coords[0], 0, tft.width()); 
+          *y = map(p.x, coords[2], coords[3], 0, tft.height());
+        break;
+        case 2: // portrait inverted
+          *x = map(p.x, coords[1], coords[0], 0, tft.width()); 
+          *y = map(p.y, coords[3], coords[2], 0, tft.height());
+        break;
+        case 3: // landscape inverted
+          *x = map(p.y, coords[0], coords[1], 0, tft.width()); 
+          *y = map(p.x, coords[3], coords[2], 0, tft.height());
+        break;
+      }      
+      if (showTouch) tft.fillCircle(*x, *y, 2, YELLOW);
     }
     return pressed;
-}
-
-void prepTouch() {
-  // set screen coordinates for orientation setting
-  if (landscape) {
-    for (int i=0; i<4; i++) screenCoords[i] = landCoords[i];
-  } else {
-    for (int i=0; i<4; i++) screenCoords[i] = portCoords[i];
-  }
 }
 
 #ifndef TFT_eSPIlib
@@ -110,7 +123,4 @@ void idDisplay() {
     tft.begin(ID);
 }
 #endif
-
-
-
 
