@@ -10,23 +10,16 @@ Added modification to allow the 4-wire resistive touchscreen of MCU Friend LCDs 
 
 ## Reason for Modification
 
-ESP32 WiFi removes access to ADC2 channel so pins 4 and 15 attached to the touchscreen no longer have analog input capability. ADC1 channel pins 36 and 39 are therefore connected to pins 4 and 15 to provide the analog input. Pins 36 and 39 are input only so always present a high impedance to avoid the risk of two outputs shorting.
+ESP32 WiFi removes access to ADC2 channel so pins 4 and 15 attached to the touchscreen no longer have analog input capability. Pin 15 already shares a connection with analog pin 35, so an additional connection is made between pin 4 and analog pin 39. Pins 35 and 39 now provide the analog input. Pins 35 and 39 are input only so always present a high impedance to avoid the risk of two outputs shorting.
 
 ## Prerequisites
 
-The following wiring mods are needed which are different to those shown in the [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI)  instructions but dont affect the software functionality or configuration.
+An extra wiring mod is needed in addition to those shown in the [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) instructions, but do not affect the software functionality or configuration.
 
-Wiring for ESP UNO type board:
+Wiring for ESP UNO type board, with extra wire shown in green:
 
-![image1](extras/wiring.png)   
-
-
-Connection to MCU Friend board:
-
-Solder an angled pin to IO32.
-Bend over LCD_RST pin and connect to IO32 pin using jumper before joining boards.
-
-![image2](extras/connection.jpg)    
+![image1](extras/wiring.jpg)   
+   
 
 
 ## Installing
@@ -39,8 +32,8 @@ The modification uses conditional compilation. To enable the changes, modify Tou
 //#define ESP32_WIFI_TOUCH // uncomment to use parallel MCU Friend LCD touchscreen with ESP32 UNO Wifi
 #ifdef ESP32 
 #define ADC_MAX 4095  // maximum value for ESP32 ADC (default 11db, 12 bits)
-#define aXM 39  // analog input pin connected to LCD_RS 
-#define aYP 36  // analog input pin connected to LCD_WR
+#define aXM 35  // analog input pin connected to LCD_RS 
+#define aYP 39  // analog input pin connected to LCD_WR
 #else
 #define ADC_MAX 1023  // Arduino
 #endif 
