@@ -10,11 +10,11 @@
 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(TEENSYDUINO) || defined(__AVR_ATmega2560__)
 typedef volatile uint8_t RwReg;
-#endif
-#if defined(ARDUINO_STM32_FEATHER)
+#elif defined(ARDUINO_STM32_FEATHER)
 typedef volatile uint32 RwReg;
-#endif
-#if defined(NRF52_SERIES) || defined(ESP32) || defined(ARDUINO_ARCH_STM32)
+#elif defined(NRF52_SERIES) || defined(ESP32) || defined(ARDUINO_ARCH_STM32)
+typedef volatile uint32_t RwReg;
+#else 
 typedef volatile uint32_t RwReg;
 #endif
 
