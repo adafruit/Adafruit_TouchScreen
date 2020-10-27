@@ -21,7 +21,7 @@
 
 #define NUMSAMPLES 2
 
-TSPoint::TSPoint(void) { x = y = 0; }
+TSPoint::TSPoint(void) { x = y = z = 0; }
 /**
  * @brief Construct a new TSPoint::TSPoint object
  *
