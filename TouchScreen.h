@@ -70,8 +70,10 @@ private:
   uint8_t _yp, _ym, _xm, _xp;
   uint16_t _rxplate;
 
+#if defined(USE_FAST_PINIO)
   volatile RwReg *xp_port, *yp_port, *xm_port, *ym_port;
   RwReg xp_pin, xm_pin, yp_pin, ym_pin;
+#endif
 };
 
 #endif
