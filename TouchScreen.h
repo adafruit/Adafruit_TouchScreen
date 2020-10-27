@@ -74,6 +74,6 @@ private:
   volatile RwReg *xp_port, *yp_port, *xm_port, *ym_port;
   RwReg xp_pin, xm_pin, yp_pin, ym_pin;
 #endif
- };
+};
 
 #endif
