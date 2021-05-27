@@ -35,7 +35,7 @@ TSPoint::TSPoint(int16_t x0, int16_t y0, int16_t z0) {
   z = z0;
 }
 /**
- * @brief Check if the current point is **not** equivalent to another point
+ * @brief Check if the current point is equivalent to another point
  *
  * @param p1 The other point being checked for equivalence
  * @return `true` : the two points are equivalent
