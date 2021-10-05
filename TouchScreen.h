@@ -7,9 +7,10 @@
 #define _ADAFRUIT_TOUCHSCREEN_H_
 #include <stdint.h>
 
-#if (defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) ||              \
-    defined(TEENSYDUINO) || defined(__AVR_ATmega2560__) ||                     \
-    defined(__AVR_ATmega4809__)) && !defined(__IMXRT1062__)
+#if (defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) ||             \
+     defined(TEENSYDUINO) || defined(__AVR_ATmega2560__) ||                    \
+     defined(__AVR_ATmega4809__)) &&                                           \
+    !defined(__IMXRT1062__)
 typedef volatile uint8_t RwReg;
 #elif defined(ARDUINO_STM32_FEATHER)
 typedef volatile uint32 RwReg;
