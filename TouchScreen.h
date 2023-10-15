@@ -55,7 +55,7 @@ public:
    * @param adcBits for µC with higher resolution ADCs provide the number of
    * bits
    */
-  TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx = 0, 
+  TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx = 0,
               uint8_t adcBits = 10);
 
   /**
