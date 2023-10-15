@@ -50,9 +50,9 @@ public:
    * @param yp Y+ pin. Must be an analog pin
    * @param xm X- pin. Can be a digital pin
    * @param ym Y- pin. Can be a digital pin
-   * @param rx The resistance in ohms between X+ and X- to calibrate pressure 
+   * @param rx The resistance in ohms between X+ and X- to calibrate pressure
    * sensing
-   * @param adcBits for µC with higher resolution ADCs provide the number of 
+   * @param adcBits for µC with higher resolution ADCs provide the number of
    * bits
    */
   TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx = 0, 
