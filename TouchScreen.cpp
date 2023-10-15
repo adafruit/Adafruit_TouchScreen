@@ -179,7 +179,7 @@ TSPoint TouchScreen::getPoint(void) {
     rtouch -= 1;
     rtouch *= x;
     rtouch *= _rxplate;
-    rtouch /= _adcMax+1;
+    rtouch /= _adcMax + 1;
 
     z = rtouch;
   } else {
@@ -283,7 +283,7 @@ uint16_t TouchScreen::pressure(void) {
     rtouch -= 1;
     rtouch *= readTouchX();
     rtouch *= _rxplate;
-    rtouch /= _adcMax+1;
+    rtouch /= _adcMax + 1;
 
     return rtouch;
   } else {
