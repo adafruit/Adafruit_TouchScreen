@@ -116,7 +116,7 @@ TSPoint TouchScreen::getPoint(void) {
   }
 #endif
 
-  x = (1023 - samples[NUMSAMPLES / 2]);
+  x = (_adcMax - samples[NUMSAMPLES / 2]);
 
   pinMode(_xp, INPUT);
   pinMode(_xm, INPUT);
@@ -152,7 +152,7 @@ TSPoint TouchScreen::getPoint(void) {
   }
 #endif
 
-  y = (1023 - samples[NUMSAMPLES / 2]);
+  y = (_adcMax - samples[NUMSAMPLES / 2]);
 
   // Set X+ to ground
   // Set Y- to VCC
@@ -179,11 +179,11 @@ TSPoint TouchScreen::getPoint(void) {
     rtouch -= 1;
     rtouch *= x;
     rtouch *= _rxplate;
-    rtouch /= 1024;
+    rtouch /= _adcMax+1;
 
     z = rtouch;
   } else {
-    z = (1023 - (z2 - z1));
+    z = (_adcMax - (z2 - z1));
   }
 
   if (!valid) {
@@ -194,12 +194,13 @@ TSPoint TouchScreen::getPoint(void) {
 }
 
 TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym,
-                         uint16_t rxplate = 0) {
+                         uint16_t rxplate, uint8_t adcBits) {
   _yp = yp;
   _xm = xm;
   _ym = ym;
   _xp = xp;
   _rxplate = rxplate;
+  _adcMax = (1 << adcBits) - 1;
 
 #if defined(USE_FAST_PINIO)
   xp_port = portOutputRegister(digitalPinToPort(_xp));
@@ -231,7 +232,7 @@ int TouchScreen::readTouchX(void) {
   pinMode(_xm, OUTPUT);
   digitalWrite(_xm, LOW);
 
-  return (1023 - analogRead(_yp));
+  return (_adcMax - analogRead(_yp));
 }
 /**
  * @brief Read the touch event's Y value
@@ -249,7 +250,7 @@ int TouchScreen::readTouchY(void) {
   pinMode(_ym, OUTPUT);
   digitalWrite(_ym, LOW);
 
-  return (1023 - analogRead(_xm));
+  return (_adcMax - analogRead(_xm));
 }
 /**
  * @brief Read the touch event's Z/pressure value
@@ -282,10 +283,10 @@ uint16_t TouchScreen::pressure(void) {
     rtouch -= 1;
     rtouch *= readTouchX();
     rtouch *= _rxplate;
-    rtouch /= 1024;
+    rtouch /= _adcMax+1;
 
     return rtouch;
   } else {
-    return (1023 - (z2 - z1));
+    return (_adcMax - (z2 - z1));
   }
 }
