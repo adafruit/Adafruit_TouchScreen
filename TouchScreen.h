@@ -52,8 +52,11 @@ public:
    * @param ym Y- pin. Can be a digital pin
    * @param rx The resistance in ohms between X+ and X- to calibrate pressure
    * sensing
+   * @param adcBits for µC with higher resolution ADCs provide the number of
+   * bits
    */
-  TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx);
+  TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym, uint16_t rx = 0,
+              uint8_t adcBits = 10);
 
   /**
    * @brief **NOT IMPLEMENTED** Test if the screen has been touched
@@ -70,7 +73,7 @@ public:
 private:
   uint8_t _yp, _ym, _xm, _xp;
   uint16_t _rxplate;
-
+  uint16_t _adcMax; // maximum reading of ADC (= 2^adcBits - 1)
 #if defined(USE_FAST_PINIO)
   volatile RwReg *xp_port, *yp_port, *xm_port, *ym_port;
   RwReg xp_pin, xm_pin, yp_pin, ym_pin;
