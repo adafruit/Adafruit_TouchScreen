@@ -17,6 +17,9 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
 void setup(void) {
   Serial.begin(9600);
+
+  // make sure ADC values are expected 10 bit resolution
+  analogReadResolution(10);
 }
 
 void loop(void) {
