@@ -21,12 +21,17 @@ TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
 void setup(void) {
   Serial.begin(9600);
+
+  // 10 bit ADC values are expected by the touch library.
+  // If touch locations seem incorrect, try uncommenting
+  // this line to force 10 bit resolution:
+  // analogReadResolution(10);
 }
 
 void loop(void) {
   // a point object holds x y and z coordinates
   TSPoint p = ts.getPoint();
-  
+
   // we have some minimum pressure we consider 'valid'
   // pressure of 0 means no pressing!
   if (p.z > MINPRESSURE && p.z < MAXPRESSURE) {
